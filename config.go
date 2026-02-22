@@ -29,11 +29,9 @@ type Config struct {
 // Try to load configfiles as specified in the files
 // list. For example:
 //
-//    ./etc/birdwatcher/birdwatcher.conf
-//    /etc/birdwatcher/birdwatcher.conf
-//    ./etc/birdwatcher/birdwatcher.local.conf
-//
-//
+//	./etc/birdwatcher/birdwatcher.conf
+//	/etc/birdwatcher/birdwatcher.conf
+//	./etc/birdwatcher/birdwatcher.local.conf
 func LoadConfigs(configFiles []string) (*Config, error) {
 	config := &Config{}
 	hasConfig := false
@@ -55,7 +53,7 @@ func LoadConfigs(configFiles []string) (*Config, error) {
 	}
 
 	if !hasConfig {
-		confError = fmt.Errorf("Could not load any config file")
+		confError = fmt.Errorf("could not load any config file")
 	}
 
 	return config, confError

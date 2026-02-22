@@ -112,9 +112,9 @@ func GetCacheKey(fname string, fargs ...interface{}) string {
 	key := strings.ToLower(fname)
 
 	for _, arg := range fargs {
-		switch arg.(type) {
+		switch arg := arg.(type) {
 		case string:
-			key += "_" + strings.ToLower(arg.(string))
+			key += "_" + strings.ToLower(arg)
 		}
 	}
 
@@ -146,7 +146,7 @@ func InstallRateLimitReset() {
 	go func() {
 		c := time.Tick(time.Second)
 
-		for _ = range c {
+		for range c {
 			RateLimitConf.Lock()
 			RateLimitConf.Conf.Reqs = RateLimitConf.Conf.Max
 			RateLimitConf.Unlock()
@@ -234,7 +234,6 @@ func Status(useCache bool) (Parsed, bool) {
 		switch StatusConf.ReconfigTimestampSource {
 		case "bird":
 			lastReconfig = status["last_reconfig"].(string)
-			break
 		case "config_modified":
 			lastReconfig = lastReconfigTimestampFromFileStat(
 				ClientConf.ConfigFilename,
@@ -267,7 +266,7 @@ func Protocols(useCache bool) (Parsed, bool) {
 	createMetaCache := func(p *Parsed) {
 		metaProtocol := Parsed{"protocols": Parsed{"bird_protocol": Parsed{}}}
 
-		for key, _ := range (*p)["protocols"].(Parsed) {
+		for key := range (*p)["protocols"].(Parsed) {
 			parsed := (*p)["protocols"].(Parsed)[key].(Parsed)
 			protocol := parsed["protocol"].(string)
 

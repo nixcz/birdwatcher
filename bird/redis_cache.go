@@ -38,16 +38,18 @@ func NewRedisCache(config CacheConfig) (*RedisCache, error) {
 
 // Get retrievs a birdwatcher `Parsed` result from
 // the redis cache.
-func (self *RedisCache) Get(key string) (Parsed, error) {
+func (rc *RedisCache) Get(key string) (Parsed, error) {
 	ctx := context.Background()
-	key = self.keyPrefix + key //"B" + IPVersion + "_" + key
-	data, err := self.client.Get(ctx, key).Result()
+	key = rc.keyPrefix + key //"B" + IPVersion + "_" + key
+	data, err := rc.client.Get(ctx, key).Result()
 	if err != nil {
 		return NilParse, err
 	}
 
 	parsed := Parsed{}
-	err = json.Unmarshal([]byte(data), &parsed)
+	if err = json.Unmarshal([]byte(data), &parsed); err != nil {
+		return NilParse, err
+	}
 
 	ttl, err := parseCacheTTL(parsed["ttl"])
 	if err != nil {
@@ -63,20 +65,20 @@ func (self *RedisCache) Get(key string) (Parsed, error) {
 
 // Set adds a birdwatcher `Parsed` result
 // to the redis cache.
-func (self *RedisCache) Set(key string, parsed Parsed, ttl int) error {
+func (rc *RedisCache) Set(key string, parsed Parsed, ttl int) error {
 	switch {
 	case ttl == 0:
 		return nil // do not cache
 
 	case ttl > 0:
-		key = self.keyPrefix + key //TODO "B" + IPVersion + "_" + key
+		key = rc.keyPrefix + key //TODO "B" + IPVersion + "_" + key
 		payload, err := json.Marshal(parsed)
 		if err != nil {
 			return err
 		}
 
 		ctx := context.Background()
-		_, err = self.client.Set(
+		_, err = rc.client.Set(
 			ctx, key, payload, time.Duration(ttl)*time.Minute).Result()
 		return err
 
@@ -85,7 +87,7 @@ func (self *RedisCache) Set(key string, parsed Parsed, ttl int) error {
 	}
 }
 
-func (self *RedisCache) Expire() int {
+func (rc *RedisCache) Expire() int {
 	log.Printf("Cannot expire entries in RedisCache backend, redis does this automatically")
 	return 0
 }
@@ -99,15 +101,15 @@ func parseCacheTTL(cacheTTL interface{}) (time.Time, error) {
 		return time.Time{}, nil
 	}
 
-	switch cacheTTL.(type) {
+	switch v := cacheTTL.(type) {
 	case string:
-		ttl, err := time.Parse(time.RFC3339, cacheTTL.(string))
+		ttl, err := time.Parse(time.RFC3339, v)
 		if err != nil {
 			return time.Time{}, err
 		}
 		return ttl, nil
 	case time.Time:
-		return cacheTTL.(time.Time), nil
+		return v, nil
 	}
 	return time.Time{}, nil
 }

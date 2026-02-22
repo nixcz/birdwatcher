@@ -18,8 +18,7 @@ type MemoryCache struct {
 
 // NewMemoryCache creates a new MemoryCache with a maximum number of keys.
 func NewMemoryCache(maxKeys int) *MemoryCache {
-	var cache *MemoryCache
-	cache = &MemoryCache{
+	cache := &MemoryCache{
 		m: make(map[string]Parsed),
 		a: make(map[string]time.Time),
 
@@ -87,7 +86,8 @@ func (c *MemoryCache) Set(key string, val Parsed, ttl int) error {
 
 // Expire oldest key in cache.
 // WARNING: this is not thread safe and a mutex
-// 		    should be acquired before calling this function.
+//
+//	should be acquired before calling this function.
 func (c *MemoryCache) expireLRU() {
 	oldestKey := ""
 	oldestTime := time.Now().UTC()

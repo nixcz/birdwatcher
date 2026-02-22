@@ -11,7 +11,7 @@ import (
 // Check if the value is not longer than a given length
 func ValidateLength(value string, maxLength int) error {
 	if len(value) > maxLength {
-		return fmt.Errorf("Provided param value is too long.")
+		return fmt.Errorf("provided param value is too long")
 	}
 	return nil
 }
@@ -26,7 +26,7 @@ func ValidateCharset(value string, alphabet string) error {
 			}
 		}
 		if !ok {
-			return fmt.Errorf("Invalid character in param value")
+			return fmt.Errorf("invalid character in param value")
 		}
 	}
 	return nil

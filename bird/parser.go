@@ -540,14 +540,6 @@ func parseRoutesCount(reader io.Reader) Parsed {
 	return res
 }
 
-func isCorrectChannel(currentIPVersion string) bool {
-	if len(currentIPVersion) == 0 {
-		return true
-	}
-
-	return currentIPVersion == IPVersion
-}
-
 // ProtocolParserState encapsulates the state of the
 // parser and can be accessed by the handlers.
 type ProtocolParserState struct {
