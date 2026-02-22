@@ -122,6 +122,11 @@ func GetCacheKey(fname string, fargs ...interface{}) string {
 }
 
 func Run(args string) (io.Reader, error) {
+	// Use the persistent socket pool when configured
+	if ClientConf.Backend == "socket" {
+		return globalSocketPool.runCommand("show " + args)
+	}
+
 	args = "-r " + "show " + args // enforce birdc in restricted mode with "-r" argument
 	argsList := strings.Split(args, " ")
 

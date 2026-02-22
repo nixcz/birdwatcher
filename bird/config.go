@@ -15,6 +15,9 @@ type BirdConfig struct {
 	BirdCmd        string `toml:"birdc"`
 	CacheTtl       int    `toml:"ttl"`
 	Dualstack      bool   `toml:"dualstack"`
+	Backend        string `toml:"backend"`   // "birdc" (default) or "socket"
+	SocketPath     string `toml:"socket"`    // e.g. "/var/run/bird/bird.ctl"
+	PoolSize       int    `toml:"pool_size"` // default: 8
 }
 
 type ParserConfig struct {

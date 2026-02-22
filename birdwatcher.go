@@ -200,6 +200,19 @@ func main() {
 	bird.CacheConf = conf.Cache
 	bird.InitializeCache()
 
+	if birdConf.Backend == "socket" {
+		poolSize := birdConf.PoolSize
+		if poolSize <= 0 {
+			poolSize = 8
+		}
+		pool, err := bird.NewSocketPool(birdConf.SocketPath, poolSize)
+		if err != nil {
+			log.Fatalf("failed to initialize BIRD socket pool: %v", err)
+		}
+		bird.SetGlobalSocketPool(pool)
+		log.Printf("Initialized socket pool: path=%s size=%d", birdConf.SocketPath, poolSize)
+	}
+
 	endpoints.Conf = conf.Server
 
 	// Make server
