@@ -4,6 +4,7 @@ go 1.12
 
 require (
 	github.com/BurntSushi/toml v0.3.1
+	github.com/fxamacker/cbor/v2 v2.9.0 // indirect
 	github.com/go-redis/redis v6.15.6+incompatible
 	github.com/go-redis/redis/v8 v8.3.3
 	github.com/gorilla/handlers v1.4.2

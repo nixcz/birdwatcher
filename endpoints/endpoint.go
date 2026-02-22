@@ -2,6 +2,7 @@ package endpoints
 
 import (
 	"fmt"
+	"io"
 	"log"
 	"reflect"
 	"strings"
@@ -10,6 +11,8 @@ import (
 	"encoding/json"
 	"net"
 	"net/http"
+
+	cbor "github.com/fxamacker/cbor/v2"
 
 	"github.com/alice-lg/birdwatcher/bird"
 	"github.com/julienschmidt/httprouter"
@@ -44,11 +47,11 @@ func CheckAccess(req *http.Request) error {
 				return nil
 			}
 		} else {
-			log.Printf("Invalid IP/CIDR format in configuration: %s\n", allowed);
+			log.Printf("Invalid IP/CIDR format in configuration: %s\n", allowed)
 		}
 	}
-	log.Println("Rejecting access from:", ipStr);
-	return fmt.Errorf("%s is not allowed to access this service", ipStr);
+	log.Println("Rejecting access from:", ipStr)
+	return fmt.Errorf("%s is not allowed to access this service", ipStr)
 }
 
 func CheckUseCache(req *http.Request) bool {
@@ -95,19 +98,34 @@ func Endpoint(wrapped endpoint) httprouter.Handle {
 			res[k] = v
 		}
 
-		w.Header().Set("Content-Type", "application/json")
+		writeResponse(w, r, res)
+	}
+}
 
-		// Check if compression is supported
-		if strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") {
-			// Compress response
-			w.Header().Set("Content-Encoding", "gzip")
-			gz := gzip.NewWriter(w)
-			defer gz.Close()
-			json := json.NewEncoder(gz)
-			json.Encode(res)
-		} else {
-			json := json.NewEncoder(w)
-			json.Encode(res) // Fall back to uncompressed response
+func writeResponse(w http.ResponseWriter, r *http.Request, res bird.Parsed) {
+	wantCBOR := strings.Contains(r.Header.Get("Accept"), "application/cbor")
+
+	// Determine the output writer, applying gzip compression if requested
+	var writer io.Writer = w
+	if strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") {
+		w.Header().Set("Content-Encoding", "gzip")
+		gz := gzip.NewWriter(w)
+		defer gz.Close()
+		writer = gz
+	}
+
+	// Set Content-Type and encode based on content negotiation
+	if wantCBOR {
+		w.Header().Set("Content-Type", "application/cbor")
+		if err := cbor.NewEncoder(writer).Encode(res); err != nil {
+			log.Println("Error encoding CBOR response:", err)
+			return
+		}
+	} else {
+		w.Header().Set("Content-Type", "application/json")
+		if err := json.NewEncoder(writer).Encode(res); err != nil {
+			log.Println("Error encoding JSON response:", err)
+			return
 		}
 	}
 }
